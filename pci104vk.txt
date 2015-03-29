@@ -1,0 +1,329 @@
+user documentation            PCI                         Veit Kannegieser
+ננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננ
+
+
+  This is an ported and customized version of Craig Harts PCI/PCI32 tool.
+  For general program usage and datafile description see the original
+  documentation readmew.txt and pci.doc.
+  PCI shows you what the hardware is currently configured. It can not
+  know what the drivers of the OS currenly running do with the hardware.
+  For example, PCI may display that two devices will share interrupts.
+  I can not tell if there is a driver loaded for the device, and if
+  the driver is written to handle sharing.
+
+  PCI.EXE as an application program can not determine size of resources used
+  by devices, because that would interrupt the working of the machine.
+  An exception of the 'show the hardware' rule is applied in this case for
+  the OS/2 variant: it asks the the informations from Resource Manager;
+  and that keeps the data that where recorded by snooper drivers at boot time.
+
+
+
+Contact
+-------
+
+For questions regarding the *vk versions please mail
+<Veit.Kannegieser@spamfence.net>.
+
+If you notice hangs during/after use of pci, please report this to me!
+If you have "unknown" hardware please help Craig, informations are
+in the header of pcidevs.txt.
+
+
+Hints
+-----
+
+When sending reports to me, please including all data, to help replay
+what happens on your machine.
+  pci.exe -d -p > pci.log
+  zip and attach pci.log
+
+
+Executables
+-----------
+
+Program                Target                Comment
+
+pci_d.exe+wdosxle.exe  DOS (32)              Himem.sys or better MM recommended
+pci_l                  Linux (32)            no libc needed
+pci.exe                OS/2 (32) + DOS (16)  no driver, no PM needed
+pci_w.exe+gwiopm.sys   Windows (32)          gwiopm.sys only for NT family
+
+
+
+History
+-------
+
+  2000.06.16..2000.07.29
+
+  changes
+
+  * compiles with Virtual Pascal (OS/2, DPMI32)
+  * pcidevs.txt file is buffered now
+  * output is paged
+
+  2000.12.10
+
+  * pci 0.41ב
+  * included pcidevs.txt 190 (2000.12.06)
+  * deleted vendors.txt
+  * added emulation for OS/2 reading PCI slot mapping information
+    on some Award and SystemSoft BIOS
+  * keep window size if running in a VIO-window
+
+  2001.12.10..2002.01.05
+
+  * port of pci 0.44ב (2001.12.05)
+  * huge speedup of pcidevs.txt access
+  * much safer because it read only register if needed
+  * You can quit pager mode with Esc key
+  * include 273 / 21-12-2001 pcidevs.txt
+  * show subsystem id for type 2 (cardbus bridge) devices
+  * -5 option if you do not like 80*50 mode
+  * split source code into modules
+
+  2002.01.06..2002.01.09
+
+  * fixed problem with Eof and subsystem=ffffffff
+  * report IRQ slotmap for "unknown" BIOS, improved dedicated IRQ for
+    some Award BIOS versions
+
+  2002.02.21
+
+  * port of 0.45ב
+  * updated pager code
+
+
+  2002.09.26
+
+  * port of 0.47ב
+  * show CardBus IO+Memory window
+  * removed screen output in redirected mode (installer mode)
+  * fixed " PCI bus number 0, CardBus bus number 20 (is already PCI bus),"
+    for BIOS that correctly report bus number count..
+
+  2003.03.30
+
+  * 0.48 doc/email/home page update
+  * added support for older AMI-BIOS IRQ-routing "$IRT" (OS/2 version only)
+  * solved missing base address report (DOS16 version only, BP7 shl problem)
+  * include 387 / 19-03-2003 pcidevs.txt
+
+  2003.07.05
+
+  * corrected "$IRT" routine that caused an range overflow error for
+    some other AMI BIOS, added support for it (OS/2 version only)
+  * include 411 / 01-06-2003 pcidevs.txt
+
+  2004.06.10..19
+
+  * Corrected D0..D3 power management capability/status
+    Thanks to Ruediger Ihle for report.
+  * Added some error checks for bad routing tables, modified routing
+    display to include actual devices(multifunction!) and IRQ
+  * Include 474 / 04-06-2004 pcidevs.txt
+  * Altered IRQ display when IRQ=0, but PIN in [A#..D#]
+  * Changed Expandsion ROM size code
+
+  2004.06.21
+
+  * added CardBus Socket/ExCa base memory address
+
+  2004.07.01..03 -- 0.48vkE
+
+  * cosmetics for pm capability power consume
+  * display CIS location, more bridge control/status
+  * corrected pci config write functions: wrong size for 16 bit;
+    error in hardware write function
+  * display programming interface for unknown device type code,
+    except for Storage/IDE/*
+
+  2004.07.07 -- 0.48vkF
+
+  * ported code from PCI32 0.52ב
+    new class codes,
+    capability decoding updates/bug fixes: pm, agp, pci express
+
+  * include 479 / 07-07-2004 pcidevs.txt
+
+  * pci routing: previous vk versions did not list pci bridges in
+    routing tables, now does it again, and also list devices behind
+    bridges
+
+  * pcidevs.txt search code crashed on non existing environment variables
+
+  * also compile pci to Linux and Win32 (included gwiopm.sys from pci32)
+    both can not get info about the PCI bios version/number of buses,
+    Win32 not even the routing tables.
+    You need winsvc.pas (Delphi) to compile the Win32 target,
+    comment off the first 3 compiler swiches for VP.
+
+  2004.07.09..12 -- 0.49vkA
+
+  * bus type search for pci express capability failed with
+    runtime error (or maybe endlesse loop) when there is no capability
+
+  * even number of write accesses during pm capability data select,
+    tries to fix mpeg cards that switch from D3 to D0 on write,
+    but then decided not to touch that register when device is in D3.
+
+  * update from PCI32 0.52ב/PCI 0.49ב
+
+  * include 480 / 08-07-2004 pcidevs.txt
+
+  * added int 1a/ax=b10e table search for Phoenix BIOS (IBM Thinkpad 390E),
+    dedicated irq map allays zero for phoenix.
+
+  2004.07.13 -- 0.49vkB
+
+  * DOS pager got broken (made it DPMI16 compatible) Argh!
+    now also prints a prompt
+
+  * forgot to display IRQ routing for devices behind a cardbus bridge
+    when ExCA IRQ routing is not active
+    Not sure if i did it correctly. What happends when an CardBus bridge
+    second socket function itself uses INTB#, but the device behind it
+    uses INTA#? Maybe model specific? Currently assume it is INTA#.
+
+  2004.07.19..28 -- 0.49vkC
+
+  * display Interrupt Router device name
+
+  * do no display IRQ routing behind bridges when there is an routing
+    table entry for an device behind the bridge (else it would list
+    devices multiple times..)
+
+  * 0.49vkB irq routing behind cardbus proved to be wrong.
+    Now assume all pins of all devices behind it use the pin that
+    it is used by that cardbus socket chip function. if the bride
+    does not indicate an IRQ, assume that all are passed like before..
+
+  * include 481 / 15-07-2004 pcidevs.txt
+
+  * look for some known IDE chips if primary/secondary channel is enabled
+    (surely not an good idea..)
+
+  * corrected cardbus io/memory bridge limit
+
+
+  2004.08.24 -- 0.49vkD
+
+  * colour cosmetics
+
+  * found documentation for irq pin rotating behind pci->pci bridges
+    example: dual intel network cards
+
+  * read pci irq table for Phoenix branded Award BIOS
+
+  * included 489 / 23-08-2004 pcidevs.txt
+
+  2005.02.11..04.27
+
+  * include 524 / 2005-04-19 pcidevs.txt
+
+  * Ported code from PCI 1.00/1.01; PCI32 1.00/1.01
+    New class codes, PCI Express code.
+    Caution: moved the readony option to -N, show tree is now -R..
+    Added BUS numbers behind bridges to -T tree display, to allow user
+    imagine tree structure better..
+
+  * Added DPMI32 variant (pci_d.exe+wdosxle.exe)
+    This variant is recommended for DOS boot diskettes - it does load
+    pcidevs.txt only once - in opposite to the DOS portion in pci.exe.
+
+  * Grouped power consume/dissipate values.
+
+  * Added -7 switch to force ASCII line drawings in tree display
+
+  * chkpci detects non-ASCII character entries
+
+  * Do address display in 2-passes. Now it may print
+    " Address x is not present or not configured!"
+    pci.exe (in opposite to a snooper driver) can not determine,
+    if the address register is present, or if it ist hardwired to zero.
+    Similary, pci.exe may not 'find' any register if the device has not
+    assigned resources at all.
+
+
+  2005.05.07..08 -- 1.01vkB
+
+  * AGP 8x/2x decision was based on the wrong bit (copy&paste error).
+    Thanks to Uwe Pilgram for noticing this!
+
+  * Added HTML output option (-m). Markup is quite stupid, and tries
+    to represent the 16 colors of the text mode for screen display,
+    and simplified reverse (gray, black, bold black on white) for print.
+    Added a sample batch file to use this and launch Mozilla.
+    This should give a useable way to print machine information.
+
+  * include 527 / 2005-05-05 pcidevs.txt
+
+  2005.05.08 -- 1.01vkC
+
+  * generated html was not valid 4.01 strict
+
+  2005.06.13 -- 1.02vkA
+
+  * Linux version will silently ignore when /dev/mem can not be read
+    (no PCI routing tables..)
+
+  * updates from Craigs PCI32 1.2
+    gives PCI-X and PCI Express bus names
+
+  * included 527(?) / 2005-06-07 pcidevs.txt
+
+
+
+  2005.09.12..15 -- 1.03vkA
+
+  * Included 567 / 2005-09-01 pcidevs.txt.
+
+  * Added changes from PCI32 1.3, such as:
+    - vital product data readout
+    - PCI-X 2.0
+    - -R now shows any detected busses with no present devices
+    - -B option is defaults to true
+    - Altered installer mode I: parameter: Now written in HEX rather than
+      decimal, because under windows values up to 255 are legal, and it was
+      screwing up the indentation. (please check your parsers!)
+
+  * Use SubVendorID/SubDeviceID to load database lines for header type 1
+    devices, display the data in 'PCI -i' output.
+
+  * Offset where CIS can be read from had missing bit 3 - usualy seen when
+    mapped in PCI config space.
+
+  * Added resource size display using OS/2 resource manager data,
+    searches in physical and current boot detect trees.
+
+  * Outmit leading zeroes for 32 bit memory ranges in 64 bit addess windows,
+    and similary for 16 bit I/O ranges.
+
+  * Changed code to read register cache using 32 bit data values instead of
+    single bytes
+
+  * Copy PCI IRQ exclusive map from $PIR table, fix search function for
+    GigaByte k8nsc939(F6).
+
+  * Used WhereX function even in io-redirected mode, giving unpredicable
+    formating results..
+
+  * Special handling for '-R' display: Bus numbers that are known through
+    secondary+1..subordinate ranges, but have not parent bridges are not
+    configured / do not exist. Makes no sense to guess their Bus type..
+
+
+
+  2005.10.13 -- 1.04vkA
+
+  * Corrected spelling and cosmetic problems.
+
+  * Added changes from PCI32 1.4
+
+  * Included 573 / 2005-10-10 pcidevs.txt.
+
+  * HTML output will contain internal links for bus/device/function and
+    bus numbers.
+
+
+ננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננננ

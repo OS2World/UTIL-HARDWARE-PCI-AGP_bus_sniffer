@@ -1,0 +1,6 @@
+
+CHKPCI is a VERY simple utility to validate that PCIDEVS.TXT has not serious
+formatting errors. It detects wrongly formatted and sorted entries, as well as
+displaying some database statistics.
+
+        Craig

@@ -1,0 +1,956 @@
+	 PCI - The PCI System information & Exploration tool.
+
+
+The following is a somewhat rambling text, from which you should be able to
+extract everything you ever wanted to know about this program! Please excuse my
+poor documentation style; I really hate writing the docs :-) So read
+everything, the answer's probably there, somewhere.
+
+
+
+ þ General
+
+This code is Written by Craig Hart in 1996-2005 and is under constant
+development. It is released as freeware; please use and modify at will. No
+guarantees are made or implied. Commercial use is also specifically permitted,
+without restriction. It's free, use it!
+
+I'd appreciate credit if you find this code useful. I'd also be interested to
+see any code you may develop or modifications you create to this code...
+suggestions & bug fixes are _always_ welcomed.
+
+I can be reached by email: chart@datafast.net.au
+
+See my home page for the latest version of all my software releases,
+programmers information, updates for PCIDEVS.TXT and much more:
+
+http://members.datafast.net.au/dft0802
+
+******** NOTE: NEW WEBSITE & EMAIL !!! ****************************************
+
+
+NOTE: Wherever you see the term PCI in this document, you can substitute AGP
+and/or CardBus, if appropriate, instead. PCI is the "root technology" upon
+which AGP and Cardbus are built, and share a common saet of basic design
+standards. AGP is pretty much just a new physical and electrical form of the
+PCI bus; CardBus is the 32-bit "version" of PCMCIA; software-wise, they're
+virtually identical. This also covers all the 'other' PCI variants, such as
+SmallPCI, PCI-X, PCI Express, etc.
+
+
+
+  þ Why create this program, anyhow? What use is it? What does it do?
+
+PCI basically produces a report of the PCI, AGP & CardBus devices fitted to a
+PC, including the system chipset. A plethoria of information is reported on,
+including system resource useage (IRQs, Memory ranges, etc), capabilities
+(busmastering, caching), setup data (device latencies, general capabilities,
+features, subsystem info), and much, much more. A text-file PCIDEVS.TXT lists
+thousands of known vendors, devices and subsystems, which PCI will refer to and
+display the info from. PCI covers all PCI device derivitives, including PCI
+64-bit & 66MHz options, AGP (all speeds to 8x), CompactPCI, CardBus and PCI-X.
+
+PCIDEVS.TXT is a plain text file, so you can update it yourself, however it is
+updated regularly (virtually daily) by the author, and the latest revision is
+always available as a free download from the webpage (see general section).
+
+This program was originally written purely for me to learn how to program the
+PCI BIOS found in newer PC's. Since then, this program has proven to be vastly
+more useful, especially in the hands of a technician, system builder, and also
+in the hands of those about to purchase or upgrade a PC.
+
+To a technician or system builder, PCI can act as a system information and
+diagnostic tool. It lists the resources devices have been assigned (for
+example, IRQ's, Memory regions, etc) so it is handy for finding conflicts.
+Because PCI also identifies the devices fitted, it is handy in figuring out
+_exactly_ what drivers are required when setting up a system.
+
+PC buyers don't need to open a PC to see exactly what they're getting: your
+vendor can't tell you fibs about the chipset, graphic-card, or whatever, and
+since the PC doesn't need to be opened to check what you ordered is what you
+got fitted, you aren't loosing any warranties.
+
+Second hand parts hoarders can figure out what they have, just by plugging it
+in and running PCI - no more scratching your head over a mystery card you just
+stumbled across amongst your latest piles of aquired junk. As above, finding
+drivers becomes much easier when you can say *exactly* what brand model, and
+revision of card you have.
+
+To a programmer, PCI is a learning tool, since it's full source code is
+supplied, and the dump configuration-space feature will help a programmer
+discover how a driver alters the hardware to activate special features or
+generally work with a given device.
+
+
+
+  þ Using PCI
+
+Just run it. Read the output. Be happy!
+
+You must place PCI.EXE and PCIDEVS.TXT together in the same directory. You must
+be "in" that directory before running PCI; in other words, do NOT run PCI from
+a path. This is because PCI only looks in the CURRENT directory for it's data
+file.
+
+PCI (as of version 0.41á) will pause at the end of each screenfull to allow you
+to read the report; press any key for the next page. Pausing is disabled if you
+are using I/O redirection.
+
+PCI's output can be redirected (using MS-DOS pipes), for example to a text file
+on disk or a printer. IE "C:\>PCI > LOG.TXT" will generate a file on disk
+called LOG.TXT  This is handy if you want to keep a perminant record of the
+system under test, print it out, email it, or whatever.
+
+PCI will be slow to generate it's report if run from a plain DOS computer from
+a floppy disk drive (due to reading the rather large pcidevs.txt file). For
+best speed run from within windows and/or from a hard disk drive. This is
+because the data file is more than 250k in size and is therefore not cached in
+memory. To improve speed under DOS a little, put buffers=20 in your config.sys
+file and reboot.
+
+PCI does not function under Windows 2000 or NT or XP. 3.x/95/98/ME work OK, as
+does OS/2 Warp.  See the bugs and OS/2 sections for more info.
+
+
+
+Syntax: PCI [/H] [/D] [/S] [/T] [/B] [/P] [/I] [/?]           ([] = optional)
+
+
+Commandline parameters:
+
+  /H   Use direct-hardware access to retrieve the information. Normally, the
+system BIOS is called on to retrieve the information, however there are some
+BIOS's circa 1995 (Award v4.51 on Intel 430FX Chipset, early PCI Compaq's using
+the Triflex Bridge chip) that incorrectly report some information. By bypassing
+the BIOS, we can get the correct information. This only works if the BIOS uses
+configuration mechanism 1. Mechanism 2 systems can use the BIOS method only.
+Mechanism 2 systems are virtually non-existant as version 2.1 of the PCI
+specifications insists on the use of mechanism 1 only... the number of
+mechanism 2 chipsets is very small, and are now more than 7 years old.
+
+  /D   Dump the PCI configuration space for each device. This option generates
+a 256 byte hex-dump of the PCI configuration space for each detected device.
+This is handy for people trying to learn to program a device, for those looking
+to discover any 'extra' undocumented registers in a device, observe the changes
+made by setup or driver software, and also to fault-find this program :-)
+
+  /S   Produce summary report only. Lists vendors, devices, subsystem ID's
+and IRQ's only. Usefull for when you need a "quick glance" and don't want to
+wade through mountains of technical info. Still displays subsystem and IRQ
+info, as these are typically the most-used features of PCI.
+
+ /T    Disble the BIOS IRQ Routing table tests. May be usefull if PCI crashes
+during this test, or you don't want to clutter up a device report with this
+'extra' info.
+
+ /B    List Bus, Device and Function info for each device. The bus number
+tells you which PCI bus the device resides on (look at the PCI bridges to see
+which bus number is 'created' by which bridge). The Device number is the PCI
+device identifier for that device on that bus (there can be 32 devices on each
+bus, and device numbers are generally non-contiguous). The function number is
+the internal sub-funtion of that PCI CHIP (many devices are single-function and
+only have a valid function 0, whilst others are multi-function and contain
+several sub-functions; each device may have as many as 8 sub-functions).
+
+ /P    Read and display PCI IRQ-router information. The IRQ router is the
+device that connects the PCI slots INTA-INTD lines to the sytem's 16 IRQ lines.
+
+The first part of this option shows what IRQ's are *potentially* available for
+the BIOS to connect each PCI slot. If you see Slot 00, it's an integrated
+(built on the motherboard) device, not a physical slot. You can work out which
+slot is which by using the /B command line parameter to display the Device &
+Bus info for each card, and then match this info up by looking physically at
+which card is in which slot.  Typically slots of the same bus are physically
+laid out in numeric order, either left to right, or right to left; different
+busses may be ordered differently to each other. Typically, all slots of a
+given bus are physically next to each other rather than bieng randomly
+distributed.
+
+The second part of this option displays a table of slots and INTA-D link
+values. To interpret this table, first note that a non-zero link value under
+INTx means that that INTx pin on that PCI socket is wired to the IRQ router's
+<number xx> input. A 00 means that INT line is not connected *at all*.
+
+Let's look at a typical table:
+
+   SLOT BUS DEV   INTA INTB INTC INTD
+    01   0  17     01   02   03   05
+    02   0  18     02   03   05   01
+    03   0  19     03   05   01   02
+    04   0  20     05   01   02   03
+    00   0   1     01   02   03   05
+
+What this table tells us is that Slot 01 and Slot 00 share the SAME link
+values, whilst the other 3 sockets each have different link values (under each
+INT line). How is this important? Each *link value* is mapped to a system IRQ,
+(but only if the PCI card signals that it requires an IRQ).
+
+If Slot 00 and slot 01 are both populated (with cards that request an IRQ on
+the same INT line), they will both be assigned the SAME IRQ! similarly, if a
+card using INTD in Slot 2 and a card using INTB in slot 4 both require IRQ's,
+they will each be configured to the same IRQ. Depending on your OS, this may or
+may not be a good thing - some OS's don't support shared IRQs in this fashion
+(A.K.A.  the dreaded IRQ conflict) You may also want to know if you're going to
+get an IRQ conflict if you're about to fit a new card and don't want to use
+"trial and error" to get a non-shared IRQ assignment.
+
+This table also highlights the other interesting points - if two slots have
+different link values under the same INT line, they CANNOT be configured to the
+SAME IRQ! Each slot will always be assigned a different IRQ from each other.
+Also, once a link-value has been assigned an IRQ, all other slots where that
+link value appears automatically take on that IRQ, so in many (but not all)
+cases you can predict what IRQ you will get when you fit a card to that slot.
+This sort of prediction an help in, for example, bulk-loading pre-configured
+software images into mass-produced systems.
+
+If you have IRQ assignment problems, these tables may highlight why - perhaps a
+certain slot is incapable of having a desired IRQ assigned, or perhaps a given
+slot has a certain INTx line not connected. Careful examination of these tables
+will tell you straight away if this is the case or not.
+
+The only thing this table won't tell you is which IRQ the BIOS will actually
+assign each slot - there is no way to determine this and most BIOS's seem to
+have no logical sequence for assigning resources; you get what you get! At
+least PCI will tell you what the BIOS has done, and it's up to you to decide if
+it's what you want, or not.
+
+For more info, see also "PCI System Architecture" by Mindshare, inc. Chapter 11
+has several diagrams (figures 11-4 and 11-5 in the third edition, pp216-217) of
+IRQ router implementations that make this a lot easier to understand!
+
+Finally, don't worry about the actual numerical link value (except for 00, of
+course) - that only has meaning to the BIOS; all we're looking for is the
+patterns the numbers represent, the numbers themselves are meaningless;
+letters, cute pictures, roman numerals, colours, whatever! would serve the same
+purpose just as well.
+
+ /I   Installer mode. Special mode for use with external programs to do
+unattended driver installations and the like. Documented sperately below. Read
+on.
+
+
+
+ þ A note on PCMCIA and CardBus Support
+
+PCI does NOT implement PCMCIA device detection!!  PCI can only detect CardBus
+cards that are inserted into CardBus controllers.  PCI can NOT detect PCMCIA
+cards, legacy-type PCMCIA controllers, or CardBus cards that are plugged into
+PCMCIA controllers. PCMCIA is a 16-bit standard, based on the ISA bus
+standards, and has nothing to do with PCI. CardBus is a 32-bit "version" or
+"upgrade" if you like, of PCMCIA; it uses the same physical connector and has
+backwards compatability for PCMCIA cards, but it appears to system software as
+just another PCI bus.
+
+It seems that some sort of CardBus driver *may* also need to be loaded for
+CardBus detection to work. CardBus Detection seems to work reliably under
+Win9x/ME ONLY if the PC Card (PCMCIA) icon is visible in the taskbar, and
+reports the PC card as recognised and present in the socket. This may be
+somewhat counter-productive for those using installer mode! In the end, it
+comes down to what sort of CardBus support the BIOS has; if the BIOS supports
+booting from a CardBus card, for example, your chances are pretty good...but
+most BIOS's don't have CardBus support.
+
+
+
+  þ PCI Crashes the Computer!
+
+It has come to my attention that there are VERY SMALL number of PCI devices out
+there on the market which are intolerant to having their configuration space
+registers read by software other than their own driver. This means that
+programs like PCI upset these devices when they read the device's configuration
+space, and the net result is a lock-up, crash, GPF or "blue screen of death"
+when PCI scans that device.
+
+In order to "work around" this buggy hardware, PCI during installer mode and
+summary mode only reads the "standard" 64 configuration space registers, not
+the whole 256 registers. The first 64 registers give us the basic data which
+installer and summary modes need, and should not upset the device.
+
+So, in summary, try PCI -S or PCI -I and see if the crash doesn't happen. If
+PCI works OK in that mode, then that is all you can use on that hardware. There
+is no way to run PCI in it's "full" reporting modes on this sort of buggy
+hardware - the full modes need to read the whole config space to get all the
+data to create the report!
+
+This is yet another example of vendors doing a poor job with their hardware
+design processes, as this sort of bug just should not exist.
+
+
+
+  þ What does "Known Bad Subsystem ID" mean?
+
+Sometimes when running PCI, you'll see the following message: "Subsystem Vendor
+XXXXh Known Bad Subsystem ID - no Vendor ID Available". This means that the
+device has reported a subsystem ID which is not compliant with the PCI
+standard, which PCI has taken special note of.
+
+This is not an error or problem, and you don't have to report anything to me.
+This is just PCI's way of letting you know that it has detected a non-complaint
+subsystem ID (Which is listed in PCIDEVS.TXT as a type X entry - see the
+section on PCIDEVS.TXT file format for further information).
+
+Normally, the subsystem ID consists of the subsystem vendor ID (SVID) and the
+subsystem device ID (SDID). The SVID lets you know what brand the device is,
+and the SDID the exact device model. When the subsystem "system" was first
+introduced, some vendors misinterpreted the standard, and failed to insert
+their SVID properly. Vendors soon corrected their errors, but there are at
+least 38 known "erronous" devices out there on the market, possibly the best
+known of them is the VIA 82cx86 southbridge-series USB Controller.
+
+With a non-standard SVID, you can't tell what vendor made the device, so
+instead of reporting "unknown vendor" or identifying the incorrect vendor, we
+simply point out the fact that the vendor can't be determined.
+
+
+
+  þ What's the ROM IRQ routing table and IRQ-router info?
+
+The PCI ROM IRQ routing table is a scheme devised by Microsoft to assist
+Windows Device Manager to reprogram PCI IRQs. It falls under the category of
+'plug and play' support and is pretty much a vital component of any motherboard
+these days.
+
+Normally, PCI IRQ's are set by the BIOS at boot time, and cannot be changed
+after the system is booted.
+
+Microsoft didn't like that and so they devised a mechanism to allows Windows to
+change the IRQ assignments after boot-time. This makes sense, since Windows is
+much more capable of handling scenarios like hot-docking (and the shuffling of
+resources that this creates), that the BIOS clearly can't cope with in real
+time or hope to forsee at boot time.
+
+The IRQ-router info is a PCI BIOS call that predates the ROM IRQ routing table,
+but offers similar information. The two should always agree! The disadvantage
+of the BIOS call is primarily that it is slow, but also that it is based on the
+very earliest versions of the PCI specifications, and thus lacks the
+expandability and flexability of the newer ROM routing table for future
+growth.
+
+The PCI standards say that the hardware vendors are free to connect PCI INT
+lines to system IRQ's in any fashion they like; there is no "standard". In
+practice, there are at least 6 different ways chipsets have actually
+implemented INT-to-IRQ connections. Since this is the case, Windows needs to
+know a few things such as which INT's can be routed to which IRQs, which
+INT-to-IRQ mappings are fixed, and which INTs belong exclusively to PCI. With
+that data in hand, Windows can re-configure IRQs for PCI devices when/if
+required to resolve resource conflicts (in conjunction with all the other
+system-wide resource data that Device Manager holds), because the user has
+requested a specific resource setting, because of a hot-dock event, CardBus PC
+Card event, or whatever.
+
+Only win95B (OSR2) or later supports this standard - Win95 original and OSR1
+don't.... under 95 & 95A, PCI IRQ resources are fixed (Windows uses whatever
+the BIOS assigned at boot time, and can't alter them) which is yet another
+reason not to use 95A, if you still do! 95A is particularly lousy at managing
+any sort of dockable/CardBus equipped laptop. 95B also has a few quirks, and is
+increasingly showing limitations on the most modern chipsets; therefore it is
+strongly recommended that Win98SE, Win2000 or newer OS's are used on modern
+(P4, Athlon XP, etc) hardware.
+
+The knowledge that the routing table(s) are present and valid is therefore
+essential for determining why Windows is or is not correctly handling PCI IRQ
+resoures. All modern (PIII+) motherboards should support the ROM routing table
+- but many (PII and earlier) don't, or the table is faulty; PCI therefore is
+able to tell us at a glance, wether IRQ management within windows is possible
+on that motherboard, and wether the ROM table is in working order or not. I
+strongly suggest you don't invest in any motherboard that has a non-existent or
+faulty implementation of the ROM IRQ routing table.  Needless to say, a
+dockable and/or CardBus equipped laptop without a working routing table is
+going to be nothing but trouble.
+
+Many older motherbards can gain (or fix bugs in) routing table support with a
+FlashBIOS upgrade - visit your motherboard vendor's website (or
+http://www.wimsbios.com) for the latest FlashBIOS and see if that helps.
+Complain loudly to any vendor with a buggy routing table; with the advent of
+Win2000, and the growing popularity of dockable laptops, this sort of thing is
+going to be an absolute minimum requirement (along with ACPI support) for a
+true overall 'plug and play' operating environment.
+
+
+
+  þ Expansion ROM Information
+
+PCI will report on any card that has a ROM *SOCKET* fitted (IE SCSI, Video,
+Ethernet cards). PCI will tell you want size ROM is supported in the socket (ie
+64k, 256k, etc). The one thing PCI can't actually tell you is if there really
+is a ROM fitted, or not! Many ethernet cards have a ROM socket for a network
+bootROM, for example, but the majority of cards don't actually have a bootROM
+fitted.
+
+The reason why PCI can't detect the ROM is that the programmer is supposed to
+enable the ROM to become visible within the PC's address space; then the ROM's
+signature and checksum bytes can be inspected to validate it's physical
+presence.
+
+To enable the ROM you need to decide where in the system's memory map to put
+it. This is of course where the problm lies. With modern OS's operating in
+protected mode, you can't just 'stick it anywhere' as the OS may be using that
+address space already, and with virtualisation of the address space for V86
+tasks, any memory accesses we make probably won't wind up going the the right
+physical location anyhow. To make this work I would have to interact directly
+with the memory manager to request an 'empty' physical memory block, request
+the logical-to-physical address mapping data, then map the ROM into the given
+region. IMHO this is well beyond my skills, so I gave up!
+
+The ROM's aren't always enabled; at BIOS POST-time, they're enabled, copied to
+Write-Protected RAM, then disabled again. The RAM-image is made to appear in
+the UMB space (IE between 640k and 1Mb), just like a 'normal' ISA option ROM.
+It's a bit like ROM BIOS Shadowing, if you like.  The ROM stays disabled
+forever more, since the copy in RAM becomes the 'live' copy.  This is done for
+speed (BIOS ROM's were shadowed for speed back in the '286 days!), but also it
+is also done because the PCI bus usually decodes into memory adress ranges well
+above 1Mb.
+
+
+
+  þ Installer mode
+
+New to version 0.41á is installer mode. Installer mode overrides all other
+commandline parameters, except /H. Installer mode simply produces a plain dump
+of all the 'technical' data about the PCI devices, but doesn't scan
+PCIDEVS.TXT, doesn't draw fancy colours, doesn't mess you about in general.
+
+The purpose of this mode is for use with automated systems that set up new
+computers. In conjunction with some batch files or a second program, you can
+take PCI's output and use it to select the right set of drivers to include in
+the build of a new system. Because all the vital slot data is included, the
+drivers can also be pre-configured to load properly with the right IRQ already
+selected, etc.
+
+
+Here is a sample of installer mode's output:
+
+
+V:1106 D:0598 S:00000000 B:0 E:00 F:0 I:00 N:- C:06 U:00 P:00
+V:1106 D:8598 S:00000000 B:0 E:01 F:0 I:00 N:- C:06 U:04 P:00
+V:1106 D:0586 S:00001106 B:0 E:07 F:0 I:00 N:- C:06 U:01 P:00
+V:1106 D:0571 S:00000000 B:0 E:07 F:1 I:00 N:- C:01 U:01 P:8A
+V:1106 D:3038 S:12340925 B:0 E:07 F:2 I:11 N:D C:0C U:03 P:00
+V:1106 D:3040 S:00000000 B:0 E:07 F:3 I:00 N:- C:06 U:00 P:00
+V:121A D:0003 S:0017139C B:0 E:17 F:0 I:10 N:A C:03 U:00 P:00
+V:1011 D:0014 S:01001186 B:0 E:19 F:0 I:09 N:A C:02 U:00 P:00
+
+
+Note the absence of the normal header and copyright information. This makes
+writing a filter easier as you don't have to find that start of the data.
+Leading zeros are inserted to make sure that the entries always start a fixed
+number of colums from the left. This means searching the results is MUCH easier
+for software.
+
+PCIDEVS.TXT isn't processed and isn't required. This means that you can save on
+diskspace and also that the program runs much faster from floppy disk; it's
+virtualy instant to run no matter how complex your device list.
+
+
+	What's reported?
+
+V: 4 digit [V]endor ID (Hexadecimal)
+D: 4 digit [D]evice ID (Hexadecimal)
+S: 8 digit [S]ubSystem ID (Hexadecimal), or 00000000 if no subsystem ID
+B: PCI [B]us number
+E: PCI d[E]vice ID number
+F: PCI device [F]unction Number
+I: [I]RQ number, or 00 if none
+N: I[N]T assignment, or "-" if none
+C: PCI [C]lass code (Hexadecimal)		(Added v0.42á)
+U: PCI s[U]bclass code (Hexadecimal)		(Added v0.42á)
+P: PCI [P]rogramming interface (Hexadecimal)	(Added v0.42á)
+
+** More fields may be added onto the end of each line, if deemed required in
+future. Write your filter to cope!
+
+Installer mode may struggle with or ignore CardBus devices - see the cardbus
+section for more info; but basically, if your BIOS doesn't have full Cardbus
+support, neither will installer mode. Sorry! There's nothing I can do -
+complain to your vendor for better BIOS CardBus suport!
+
+
+
+  þ OS/2 Warp
+
+Firstly, I don't own or have access to OS/2, so the the following is only
+heresay as reported by OS/2 users; but I believe it to be accurate. PCI works
+OK under OS/2 - it just runs in a DOS box like any other legacy DOS
+application.
+
+Apparently an OS/2 specific port of PCI is now available, which is not written
+or supported by me! It is my program, heavily modified to be a native OS/2
+console application, as well as a few minor behavioural changes to suit the
+author's personal taste.  The ported versions carry the letters VK on the end
+of the version number - I.E. Version 0.45áVK.
+
+For questions regarding the *vk version, please mail Veit.Kannegieser@gmx.de
+His website has an even longer URL than mine; the English version of which
+seems to be: http://www-user.tu-cottbus.de/~kannegv/index_e.htm 
+
+I encourage OS/2 users to try both versions.  Veit's port usually lags a
+version number or two behind mine, and I've had odd reports of his version
+crashing where mine doesn't, however there's no reason not to use Veit's
+version instead of mine if it works better for you.
+
+Generally, OS/2's AGP support in OS/2 is minimal, at best. Whilst there is
+nothing stopping AGP working in OS/2, very few drivers bother to support it at
+all, or only partially (i.e. basic PCI level support, or 1x speed only). You
+have to ask yourself if you need AGP under OS/2 anyhow - unless you're somehow
+doing 3D gaming, animation or texture mapping, AGP really won't make much of a
+difference. Plain old PCI-speed is more than good enough for general 2D work.
+
+OS/2 supports PCI interrupt sharing, but many OS/2 drivers (about half) don't.
+Thus, it's usually a requirement that there be no shared IRQ's in an OS/2
+system. This is getting increasingly awkward to achieve on modern chipsets and
+notebooks, further restricting OS/2's continued growth.
+
+
+
+  þ Does my AGP 1x/2x/4x support work, or what?
+
+There seems to be some misinformation about support for the faster AGP speeds
+out there, not the least of which was caused by an article I wrote some years
+back about PCI chipsets on AGP PCB's (cards sold as 'AGP' type, but really just
+have 'PCI' level features).
+
+Here are the facts. Don't trust anything you read except the following as
+there is a lot of misinformation or just plain outdated commentry out there on
+the web...
+
+All AGP cards made since 1998 are the true AGP type; that is they support
+enhanced speeds beyond that of PCI (I know of no exceptions to that rule!).
+Only a small number of very early AGP cards are really just PCI chipsets on AGP
+cards, but be aware they do exist (mostly in older systems circa 1995-7).
+
+To identify a "true" AGP card, check for the New Capabilties List of the device
+for an "AGP Capabilty" entry.  AGP capability version 1.0 supports AGP 1x and
+optionally 2x, whilst version 2.0 adds 4x support and version 3.0 adds 8x
+support. All AGP cards MUST have this 'New Capability' data present to operate
+in AGP mode.
+
+Next, check your chipset's AGP bridge's New Capabilities List to determine the
+chipset's AGP support level. If you don't have an AGP Bridge somewhere in your
+system, you probably don't have an AGP video card :-)
+
+Compare the two AGP Capability Lists and identify the highest common supported
+speed. For example, the Nvidia GeForce2 MX has a maximum AGP speed of 4x, but
+the VIA MVP3 AGP bridge has a maximum speed of 2x, so 2x is the fastest
+possible speed available on that system. In this case, the GeForce2 MX will
+perform more slowly than if it were in a more modern system and able to run at
+it's full 4x speed.
+
+Next, see if AGP mode is actually enabled (It's written as a NO in red if it
+isn't and as a YES in green if it is), and read off the selected speed.
+
+Note: If you run PCI *WITHOUT* your motherboard's AGP drivers, *AND* the
+display card's drivers correctly loaded and functioning, AGP WILL REPORT AS
+DISABLED!!!! That means running PCI from plain DOS will ALWAYS report AGP as
+disabled, no matter what! Always make sure both the chipset and video drivers
+specific to your chipset and display adapter are correctly installed and
+functioning, or AGP support will not work!
+
+To get AGP mode enabled, the host CHIPSET must be initialised into AGP mode (IE
+the GART must be configured and enabled) and then the display adapter must be
+put into AGP mode and accessed that way. AGP mode is not compatible with legacy
+type VGA adapters, and thus it won't work when your OS is trying to access the
+VGA card the 'traditional' way.
+
+SO.. the only way to properly check on AGP support is to run PCI in a DOS
+window under your operating system... this means Win2k/NT/XP machines can't be
+checked currently....use PCI32 instead.
+
+
+
+ þ Bugs, stuff yet to come, limitations, etc.
+
+PCI is known to not operate under Windows NT, 2000 or XP. If you run
+NT/2000/XP, you must boot with DOS or Win95/98/ME to run PCI. This is because
+NT's HAL denies PCI access to the system BIOS and I/O ports necssary for PCI to
+operate. There is now a specific version of PCI for use under these OS's - it's
+called PCI32 and is available from my website.
+
+Basically, 100% full decoding of all the PCI data is yet to be implemented...
+mainly because I don't own full copies of all the 'official' PCI specification
+documents, (And I am unable to get them as they cost $$$ and I don't live in
+the USA so I have no easy way to transmit payment...presuming I wanted to pay
+for them at all). So, I am reliant on snippets of information collated from
+books, data sheets, YOUR INPUT, etc etc. See the web page for more info, and
+the text of the next section.
+
+I now have a copy of most of the specs circa PCI 2.2 level (Thanks to a
+generous [you know who you are] who posted them at his expense all the way from
+Canada to Australia for me!), but PCI 3.0 is just about to come out so again I
+will be "behind" shortly.
+
+Having said all that, PCI is now a very mature product (developed now for ~7
+years) and it is 'virtually' complete. There isn't much left to do, and each
+new version is improving support, for example CardBus support is now finally
+working, true AGP 8x support has recently been added, and PCI Express support
+has commenced.
+
+
+
+
+ þ And to the PCI SIG:
+
+Official PCI Programming information is not freely available. The controlling
+body the "PCI Special Interest Group" has determined that documentation will be
+made available only to those willing to pay for it. Whist maintaining one's
+Copyright is always important, the nature of a 'not for profit' organisation
+(like the PCI-SIG) should preclude them charging outrageous fees (currently
+$USD1500) for this information. And it's not easily obtainable outside the USA.
+I have the following to say to the PCI SIG:
+
+Charging massive sums of money for your documentation not only restricts
+programmers and end users from adopting the PCI standard, but makes a mockery
+of the concept of open information sharing that the Internet has always stood
+for. Rather than take such a petty attitude towards Joe Average programmer, why
+not release your documentation freely in electronic format? It can only help
+establish your standards further.
+
+Freely releasing formal documentation would also mean that programmers such as
+myself can stop guessing about PCI, and stop writing up alternative
+documentation that may, ultimately, be incorrect. I'm sure that the current
+host of "third party" documentation (along with it's errors) can only make PCI
+look BAD, not good.
+
+Remember MCA? In 1987 we already had what PCI now offers.. please don't kill
+PCI the same way IBM killed MCA.
+
+The new website now has many (but not all) PCI Specifications documents online
+for absolutely FREE DOWNLOAD. Up yours, PCI-SIG!
+
+
+
+ þ Compiling PCI
+
+To re-compile PCI, you'll need a copy of Borland Turbo Pascal 7.0 for DOS. I
+have no idea if other versions work or not; 6.0 probably will. Put all the
+files from the zip into the one directory. Run TURBO to get into the TP GUI.
+Load pci.pas and press F9 to compile. Done!
+
+
+
+ þ How to "parse" PCIDEVS.TXT
+
+Writing your own code to use my database? GREAT! You're more than welcome: the
+database is freeware and you may use it for any purpose, including commercial
+purposes. Here's how *I* parse the list, in "pseudocode". I hope this makes it
+easier for you to write a parser too. Please forgive me if you think this is
+poorly designed/could be done better; the technique stems from three things:
+
+- Sourcefile is TEXT, not Binary, so there are no fixed field lengths.
+- Many fields are optional so the catch-22 of "you dunno if it's there 'till
+  you read it, but once you've read it, you can't go back a line if it wasn't
+  what you expected" applies.
+- The program has been added to and expanded "ad hoc" over a 5 year period.
+  Inevitable oversights and extensions have been dealt with several times.
+- The basic file format can't be changed since there are many programs
+  (including a couple of commercial packages) relying on my file format not
+  changing.
+
+
+
+
+
+Open the file as text (not binary) and read top to bottom, one line at a time.
+
+1. Look for V entries, until you make a match to the vendor ID, or EOF in which
+case report unknown vendor & device. Display Vendor Name.
+
+<the file position pointer now points to the list of devices for that Vendor>
+
+
+2. Read D entries until you get a match to the device ID, or hit another V
+entry or EOF in which case stop and report unknown device. DONT display Device
+Name yet!!
+
+<the file position pointer now points to possible device revision records>
+
+
+3. Read R entries until you get a match with the device's revision ID, or you
+run out of R entries, or EOF. (There may be no R entries at all). If you match
+R, then display that entry for the Device Name, otherwise display the Device
+Name from the D entry... R is more accurate than D, but you might not match R.
+
+<the file position pointer now points to possible subsystem records>
+
+
+4. If you matched D(and/or R), and the subsystem ID is <>00000000 then (look
+for subsystem match):
+
+   in a loop, read a line, and
+     - try to match an X code with the 8 digit subsystem ID.
+     - try to match an O code with your subsystem vendor ID. Remember the
+       "generic" part description. Note the match, Keep going in this loop.
+     - try to match an S code with your subsystem device ID, but only if the O
+       code has already been matched.
+   exit when you matched an X code, or (matched an S AND an O code), EOF, or
+   you hit another V or D code.
+
+- if you EOF or matched neither X, O nor S, report unknown subsystem ID.
+- if you matched an X entry, report info next to X entry, and warn user this
+is a known "oddball" device that has an otherwise invalid subsystem ID. (Ignore
+any partial S-but-not-O match, if any - its a false alarm).
+- if you matched O BUT NOT S, report the "generic" ID you remembered. Warn
+user it may not be "fully" accurate, but is just a guestimation.
+- if you matched O AND S, report info next to S entry; you exactly matched the
+subsystem ID.
+
+5. close list
+
+6. If you have an O code, re-open the list. Scan list reading the V entries,
+but try to match with the O code. This tells you the OEM name. Stop at match or
+EOF. If EOF, report unknown OEM ID. Close list.
+
+List must be closed and re-opened because the O name may be "higher" up the
+list, thus a scan-to-the-end of the list will not match. This also means this
+check must be done last since it causes us to "loose our spot" in the list.
+Filepos() doesn't work (in Pascal, at least) since we're working with a
+textfile!! (Argh!!)
+
+If you find an invalid code letter, IGNORE IT; just move onto the next line.
+This lets us add new code letters and not 'break' existing code.
+
+
+
+
+ þ Other formatting notes for PCIDEVS.TXT:
+
+All useful lines are formatted thus:
+
+<Code Letter><Tab><2-8 hex digits><tab><text>
+
+You may NOT replace <tab> with <space>! Also, do NOT replace a tab with eight
+spaces!!! the parser counts characters left to right, and looks for the tab
+character, so wrong, extra or missing characters will result in a wrongly
+parsed line. This means the file formatting must be kept strictly in check at
+all times. Use my CHKPCI utility (Available seperately from the website) to
+inspect and validate your changes.
+
+Overall, total line length must be 255 characters or less (Pascal language
+limitation). Try to keep the text under about 70 chars for display legibilty
+(excessive display wordwrap really is in poor taste :-/)
+
+All entries must always follow numerical order, lowest to highest. This makes
+duplicates almost impossible when editing, but the parser doesn't actually
+care, since it works on "keep looking until you run out" principle. A "tiny"
+efficiency could be added by coding in "if database ID > our ID, give up" but I
+hardly see the point, since the program runs faster than you can blink anyhow.
+
+You should ignore all lines not starting with a valid code letter,tab sequence.
+This allows clarity by inserting blank lines and comments wherever it may
+please you. For clarity, begin comment lines with a <;> character; Accidental
+capitilisation of the first word of a comment could lead to a wrongly parsed
+code.
+
+Valid Codes:
+
+  V	Vendor ID. 4 digit hex number.
+  D	Device ID. 4 digit hex number.
+  R	Revision ID. 2 digit hex number.
+  X	Incorrectly formatted susbsystem ID. 8 digit hex number.
+  O	Subsystem OEM ID. 4 digit hex number. (top 16 bits of subsystem ID)
+  S	Subsystem device ID. 4 digit hex number. (low 16 bits of subsystem ID)
+
+The codes must always appear in this order in the file. Multiple O and S
+entries may appear. O entries may appear without S entries. Only V and D
+entries are required to identify a device - all others are optional and my be
+omitted.
+
+A note on R entries: R is NOT permitted under a subsystem entry. A chipset
+revision is just that - the BASE CHIPSET's revision. The OEM can't have any
+influence on the chipset's revision, since he doesn't make it! Thus, R is of no
+use under the subsystem. I very much doubt any OEM has made two different model
+cards by carefully buying different revision chips from the chipset vendor!!
+
+A note on X entries: X entries are very rare. In the "early days" of subsystem
+ID's, some vendors apparently thought they had carte blanche to put in any
+number they liked. WRONG! However a few devices now exist with nonsensical
+subsystem ID's like "55555555" or "F0F01234" and suchlike. X entries take care
+of these few "oddball" devices. I don't expect to add any more than one or two
+new X entries, ever.
+
+** New code letters may be added from time to time, so your code should always
+ignore any unknown code letters. This lets up expand the scope of the file
+without 'breaking' existing code.
+
+
+
+ þ Program Revision Information
+
+  version 0.00á : Initial private release: Didn't crash my home PC!
+
+  version 0.10á : fixed bug whereby if either vendor byte is $FF, we would
+                  skip the device. Ouch! Now finds devices reported as xxFF on
+                  some buggy Award BIOS's chipsets. (Notibly, 80FF, not 8086
+		  for the 82430FX IDE Ctrlr).
+		  fixed problem decoding infotable[6].
+		  fixed select timing decoding fixed irq=$ff decoding
+
+  version 0.11á : fixed bug displaying select timing modes
+
+  version 0.12á : added "subsystem id" information display
+		  made cache line size display only if it exists (ie is<>0)
+		  added /H parameter to use cfg mechanism 1, not BIOS to
+		  read the hardware directly (gets around 80FF bug)
+		  added bus mastering capability & latency reporting
+		  added prefetchability reporting to memory ranges
+		  fixed up several minor display and reporting issues
+		  made IRQ display only if it's valid
+
+  version 0.13á : fixed some display formatting bugs
+		  subsystem ID's only displayed if valid (<>00000000)
+		  Added subsystem recognition system (after many requests)
+		  Added ability to direct output to a file ie "C:\>pci > log"
+
+  version 0.14á : Added commandline parameter /D to dump device configuration
+		  space, if required. This is usefull when programming a
+		  PCI device, and/or looking for 'hidden' registers, features,
+		  etc etc.
+
+  version 0.15á : added subsystem vendor display; it's not always accurate,
+		  (Some vendors are ignoring the rules) but when it is right,
+		  it can be very useful.
+		  Added capabilities list decoding & display - not yet tested!
+		  Tidied up the code here and there - fixing my cruddy coding
+		  fixed major bugs with Expansion ROM info display
+		  fixed minor potential bug with I/O port decoding
+		  added interface type to class code line
+
+  version 0.16á : Fixed a stupid bug with new capabilities list display
+		  Added raw-dump of Power Management capability data
+
+  version 0.17á : fixed some minor display formatting problems
+		  fixed several problems decoding type 2 headers
+		  fixed another bug with expansion ROM decoding
+		  added some more decoding of type 1 headers
+		  added some more decoding of type 2 headers
+		  added info on PCI IDE controllers & mode(s) of operation
+		  added error checking for case of VENDORS.TXT missing
+		  added some decoding of "power management" new capability
+
+  version 0.18á : fixed display formatting bug with PCI IDE info
+
+  version 0.19á : added IRQ summary to end of display
+		  added generic subsystem ID detection & note
+		  fixed compiler leaving debug-info in EXE
+		  cleaned up a few minor display issues
+
+  version 0.20á : added several new class codes intoduced with PCI spec v2.2
+		  added decoding of command register
+		  fixed "status 0200h ()" display formatting bug & redrew
+		    the general layout of the Status info to avoid commom
+		    wordwrap problem and to more correctly display timing +
+		    busmaster info next to their "source" register
+		  fixed "Number of PCI busses : 0"
+
+  version 0.21á : added MSI Capability detection
+		  added shared IRQ summary
+		  indented capabilities listings to make them more readable
+		  fixed error in classes.pas missing out the last few entries
+		  added ExpROM decode for type 1 headers
+		  added I/O port range decode for PCI Bridges
+		  fixed display wordwrap problems
+		  full decoding of Self Test function byte
+
+  version 0.30á : converted to PCIDEVS.TXT format, added subsystem prediction
+		  code
+
+  version 0.31á : fixed slight bug with unknown subsystem vendor ID
+		  added /S parameter for brief summary only report
+		  changed IRQ reporting to reject bad IRQ values (0<IRQ<16)
+		  this fixes runtime error 201 on compaq triflex bridge!
+
+  version 0.32á : added revision ID decoding for more accurate chipset-id
+		    added a load of info in the documentation on PCIDEVS.TXT
+		  structure, parsing, etc
+		  fixed problem with IRQ list wrong in summary mode because IDE
+		    IRQs not recorded
+		  Updated help to current feature set
+
+  version 0.33á : added PCI IRQ Routing table Win9x compatibility tests
+
+  version 0.34á : fixed some bugs in new routing table check routine
+
+  version 0.35á : fixed capability pointer bug with type 1 headers
+		  IRQ summary display formatting fixed
+		  PCI major revision number leading 0 dropped
+		  help page again fits into one 25 line screen
+		  added display bus/device/function info option
+
+  version 0.40á : added 'None' to "IRQ's dedicated to PCI" for when there are
+		    truely none reported in the IRQ routing table info
+		  added first attempt at PCI slot INTx routing data display
+		  fixed a bug in "IRQ's dedicated to PCI" omitting IRQ 15
+		  added latest PCI 2.2 class codes; fixed bugs in classes code
+		  better error checking on AGP capability list
+
+  version 0.41á	: added all missing capability ID's per PCI rev 2.2 specs
+		  fixed incorrect device name on slot irq-router info
+		  added pause for keypress function when writing to screen
+		  fixed new capabilities list bug for first capability = last
+		    capability signature (i.e. no capabilities listed)!
+		  fixed up ROM info - was totally wrong previously!
+		  added /I installer mode report for system builders
+		  /? now works even if PCIDEVS.TXT missing
+		  help on error messages now more comprehensive
+
+  version 0.42á : fix up class code FFh reporting
+		  added class, subclass & prog IF info to installer mode
+
+  version 0.43á : fix up errors in power management capability info
+		  fix a spelling error -> "decryption"
+		  don't read past config register $3f in installer and
+		    summary modes to avoid crashing on intolerant hardware
+		  fix some truncated text strings in class codes
+		  added sanity checks for conflicting command line switches
+		  added a lot to 'new capability' decoding section
+		  fixed all the bugs with scanning cardbus devices
+
+  version 0.44á : fixed pci-x max speed 66, not 64
+		  fixed shared IRQ count wrong if IDE controller IRQ field
+		    reported by device
+		  fixed duplicate scan of CardBus issue with some PCI BIOS's
+		  added new capability code 09h recognition
+		  fixed another CardBus bug with unconfigured controllers
+
+  version 0.45á : fixed overflow bug due to compiling with overflow checking
+		    on. this has also reduced size of executable slightly
+		  fixed potential bug with checksumming corrupt routing tables
+		  extensively revised and expanded documentation with a load
+		    of general comments and background info, tips etc.
+		  fixed bug with parsing comment lines in middle of subsystem
+		   entries in pcidevs.txt
+
+  version 0.46á : added support for AGP v3.0 as per rev 0.95 of AGP v3.0 specs
+		    (This adds support for AGP 8x recognition)
+		  further revisions, expansion and updates to documentation
+
+  version 0.47á : added revision field to Installer mode
+		  added class code for EHCI USB controller
+		  fixed some minor display indent-formatting issues
+		  added more decoding of type 1 headers (PCI bridges)
+		  added more decoding of PCI-X capability info
+		  fixed a couple of minor code errors and a class code database
+		    error
+		  added support for PCI v2.3 standard
+		  fixed more bugs in pci power management capability info
+
+  version 0.48á : fix more stuff, mostly cosmetic errors
+
+  version 0.49á : fixed more power management decode errors
+		  updated to PCI v3.0 spes throughout, incl. class codes
+		  updated with initial PCI Express support
+                  fixed all the shared bugs discovered via pci32 0.52á release
+                  
+  version 1.0   : Dedcided to drop the beta label once and for all
+  		  Fixed some more Expansion ROM detection/sizing issues
+  		  Fixed bugs with PCI Express decode
+		  Synched all source edits with PCI32 1.0
+
+Version 1.1
+- Added decoding of Power Management data register, if present.
+- Added maximum bus latency and minimum bus grant timer info to reports
+- Added -R option to draw a "tree" of the hardware Bus:Device:Function struct.
+- Finally fixed log standing, stupid code bug with subsystems vs R entries.
+- Minor fix-ups to PCI Express code; more to follow yet.
+
+  		  
+<EOF>

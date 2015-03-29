@@ -1,0 +1,7 @@
+"Shared IRQs: IRQ 10 is shared by 2 PCI Devices"
+->
+"Shared IRQs: IRQ 10 is shared by 2 PCI Devices (known drivers: USBUHCD.SYS, RTSND.OS2)"
+
+problem: not all drivers register with RM, so it will incomplete
+
+could also indicate exclusive/multiplexed/.. flags
